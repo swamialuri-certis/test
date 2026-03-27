@@ -41,7 +41,7 @@ Amazon SQS Queue
 3. **Validation** — Required JSON fields are verified; invalid messages are logged and dropped (not retried).
 4. **Transformation** — Raw JSON is deserialized into `IncomingMessage` and normalized into a `TransformedMessage` (currency uppercased, correlation ID attached).
 5. **Mapping** — `TransformedMessage` is shaped into `ApiARequest` and `ApiBRequest`.
-6. **Dispatch** — Both requests are sent sequentially via typed `HttpClient` instances.
+6. **Dispatch** — Both requests are sent concurrently via typed `HttpClient` instances.
 7. **Mark Processed** — On success the `messageId` is stored in the idempotency cache.
 
 ## Project Structure

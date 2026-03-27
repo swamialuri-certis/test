@@ -13,7 +13,7 @@ public static class RetryHelper
             .Or<TaskCanceledException>()
             .WaitAndRetryAsync(
                 retryCount: maxRetries,
-                sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(baseDelaySeconds, attempt)),
+                sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt) * baseDelaySeconds),
                 onRetry: (outcome, timeSpan, attempt, context) =>
                 {
                     Log.Warning(outcome.Exception,
