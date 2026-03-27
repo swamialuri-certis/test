@@ -55,11 +55,11 @@ public class MessageProcessorService : IMessageProcessorService
             var apiARequest = _mapper.MapToApiARequest(transformedMessage);
             var apiBRequest = _mapper.MapToApiBRequest(transformedMessage);
 
-            Log.Information("Sending payload to API A for user {UserId} with CorrelationId {CorrelationId}.", transformedMessage.UserId, correlationId);
-            await _apiClientA.SendAsync(apiARequest, cancellationToken);
-
-            Log.Information("Sending payload to API B for user {UserId} with CorrelationId {CorrelationId}.", transformedMessage.UserId, correlationId);
-            await _apiClientB.SendAsync(apiBRequest, cancellationToken);
+            // Dispatch to both APIs concurrently (they are independent)
+            Log.Information("Sending payloads to API A and API B for user {UserId} with CorrelationId {CorrelationId}.", transformedMessage.UserId, correlationId);
+            await Task.WhenAll(
+                _apiClientA.SendAsync(apiARequest, cancellationToken),
+                _apiClientB.SendAsync(apiBRequest, cancellationToken));
 
             _idempotencyService.MarkAsProcessed(messageId);
 

@@ -6,19 +6,20 @@ namespace SqsProcessor.Utilities;
 
 public static class RetryHelper
 {
-    public static AsyncRetryPolicy CreateHttpRetryPolicy(int maxRetries, int baseDelaySeconds)
+    public static IAsyncPolicy<HttpResponseMessage> CreateHttpRetryPolicy(int maxRetries, int baseDelaySeconds)
     {
-        return Policy
+        return Policy<HttpResponseMessage>
             .Handle<HttpRequestException>()
             .Or<TaskCanceledException>()
             .WaitAndRetryAsync(
                 retryCount: maxRetries,
                 sleepDurationProvider: attempt => TimeSpan.FromSeconds(Math.Pow(baseDelaySeconds, attempt)),
-                onRetry: (exception, timeSpan, attempt, context) =>
+                onRetry: (outcome, timeSpan, attempt, context) =>
                 {
-                    Log.Warning(exception,
+                    Log.Warning(outcome.Exception,
                         "Retry {Attempt}/{MaxRetries} after {Delay}s due to: {Message}",
-                        attempt, maxRetries, timeSpan.TotalSeconds, exception.Message);
+                        attempt, maxRetries, timeSpan.TotalSeconds,
+                        outcome.Exception?.Message ?? "non-success status");
                 });
     }
 }

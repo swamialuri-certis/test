@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
 using Serilog;
 using SqsProcessor.Clients;
 using SqsProcessor.Configuration;
 using SqsProcessor.Services;
+using SqsProcessor.Utilities;
 using SqsProcessor.Validation;
 
 namespace SqsProcessor;
@@ -32,19 +32,9 @@ public static class Startup
         services.AddSingleton<IdempotencyService>();
         services.AddScoped<IMessageProcessorService, MessageProcessorService>();
 
-        var retryPolicy = Policy<HttpResponseMessage>
-            .Handle<HttpRequestException>()
-            .Or<TaskCanceledException>()
-            .WaitAndRetryAsync(
-                retryCount: appSettings.Retry.MaxRetries,
-                sleepDurationProvider: attempt =>
-                    TimeSpan.FromSeconds(Math.Pow(appSettings.Retry.BaseDelaySeconds, attempt)),
-                onRetry: (outcome, timeSpan, attempt, context) =>
-                {
-                    Log.Warning(outcome.Exception,
-                        "HTTP retry {Attempt} after {Delay}s: {Message}",
-                        attempt, timeSpan.TotalSeconds, outcome.Exception?.Message ?? "non-success status");
-                });
+        var retryPolicy = RetryHelper.CreateHttpRetryPolicy(
+            appSettings.Retry.MaxRetries,
+            appSettings.Retry.BaseDelaySeconds);
 
         services.AddHttpClient<IApiClientA, ApiClientA>(client =>
         {
