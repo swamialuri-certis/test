@@ -1,0 +1,27 @@
+# .NET
+obj/
+bin/
+*.user
+*.suo
+.vs/
+.vscode/
+*.swp
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Lambda publish output
+publish/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
